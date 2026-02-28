@@ -1,0 +1,4 @@
+../Core/Src/UARTComms.c:20:6:UARTComms_Transmmit_Data	16	static
+../Core/Src/UARTComms.c:31:6:UARTComms_Recieve_Data	16	static
+../Core/Src/UARTComms.c:46:6:HAL_UARTEx_RxEventCallback	16	static
+../Core/Src/UARTComms.c:55:6:UARTComms_Init	8	static

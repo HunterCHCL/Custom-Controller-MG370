@@ -1,0 +1,11 @@
+../Core/Src/CRCs.c:88:9:CRC08_Calculate	2
+../Core/Src/CRCs.c:96:10:CRC08_Verify	3
+../Core/Src/CRCs.c:102:10:CRC08_Append	3
+../Core/Src/CRCs.c:117:10:CRC16_Calculate	3
+../Core/Src/CRCs.c:125:10:CRC16_Verify	5
+../Core/Src/CRCs.c:132:10:CRC16_Append	3
+../Core/Src/CRCs.c:149:10:CRC32_Calculate	1
+../Core/Src/CRCs.c:154:10:CRC32_Verify	1
+../Core/Src/CRCs.c:159:10:CRC32_Append	1
+../Core/Src/CRCs.c:170:10:Get_CRC16_Check_Sum_UI	3
+../Core/Src/CRCs.c:185:9:Get_CRC8_Check_Sum_UI	2

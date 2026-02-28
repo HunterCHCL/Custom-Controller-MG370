@@ -52,7 +52,7 @@ osThreadId_t CommsTaskHandle;
 const osThreadAttr_t CommsTask_attributes = {
   .name = "CommsTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for MotorControll */
 osThreadId_t MotorControllHandle;
@@ -68,7 +68,7 @@ const osThreadAttr_t MotorControll_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartCommsTask(void *argument);
-void StartMotorControll(void *argument);
+extern void StartMotorControll(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -122,7 +122,7 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartCommsTask */
-void StartCommsTask(void *argument)
+__weak void StartCommsTask(void *argument)
 {
   /* USER CODE BEGIN StartCommsTask */
   /* Infinite loop */
@@ -131,24 +131,6 @@ void StartCommsTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END StartCommsTask */
-}
-
-/* USER CODE BEGIN Header_StartMotorControll */
-/**
-* @brief Function implementing the MotorControll thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartMotorControll */
-void StartMotorControll(void *argument)
-{
-  /* USER CODE BEGIN StartMotorControll */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartMotorControll */
 }
 
 /* Private application code --------------------------------------------------*/
