@@ -12,28 +12,6 @@ uint32_t MG370_B_EncoderCount = 0;
 MG370_CascadePID_Motor_t MotorA_CascadeCtrl = {0};
 MG370_CascadePID_Motor_t MotorB_CascadeCtrl = {0};
 
-MotorA_CascadeCtrl.position_pid.kp = 1.0f;
-MotorA_CascadeCtrl.position_pid.ki = 0.0f;
-MotorA_CascadeCtrl.position_pid.kd = 0.0f;
-MotorA_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
-    
-MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
-MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
-MotorA_CascadeCtrl.speed_pid.kd = 0.1f;
-MotorA_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
-MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
-
-// 电机 B PID 设置 (同理)
-MotorB_CascadeCtrl.position_pid.kp = 1.0f;
-MotorB_CascadeCtrl.position_pid.ki = 0.0f;
-MotorB_CascadeCtrl.position_pid.kd = 0.0f;
-MotorB_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
-
-MotorB_CascadeCtrl.speed_pid.kp = 2.0f;
-MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
-MotorB_CascadeCtrl.speed_pid.kd = 0.1f;
-MotorB_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
-MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
 
 void MG370_Init(void)
 {
@@ -285,14 +263,11 @@ void StartMotorControll(void *argument)
     MG370_A_ENCODER_Init();
     MG370_B_ENCODER_Init();
     
-    // 初始化 PID 结构体参数 (应根据实际物理参数调优，这里给出一组示例初始值)
-    // 比例、积分、微分系数需根据实际电机调试修改
-    
-    // 电机 A PID 设置
+    // 初始化 PID 结构体参数
     MotorA_CascadeCtrl.position_pid.kp = 1.0f;
     MotorA_CascadeCtrl.position_pid.ki = 0.0f;
     MotorA_CascadeCtrl.position_pid.kd = 0.0f;
-    MotorA_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
+    MotorA_CascadeCtrl.position_pid.max_output = 200.0f; // 最大输出速度限制
     
     MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
     MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
@@ -300,14 +275,21 @@ void StartMotorControll(void *argument)
     MotorA_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
     MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
 
-    // 电机 B PID 设置 (同理)
-    MotorB_CascadeCtrl.position_pid = MotorA_CascadeCtrl.position_pid;
-    MotorB_CascadeCtrl.speed_pid = MotorA_CascadeCtrl.speed_pid;
+    // 电机 B PID 设置
+    MotorB_CascadeCtrl.position_pid.kp = 1.0f;
+    MotorB_CascadeCtrl.position_pid.ki = 0.0f;
+    MotorB_CascadeCtrl.position_pid.kd = 0.0f;
+    MotorB_CascadeCtrl.position_pid.max_output = 200.0f; // 最大输出速度限制
 
+    MotorB_CascadeCtrl.speed_pid.kp = 2.0f;
+    MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
+    MotorB_CascadeCtrl.speed_pid.kd = 0.1f;
+    MotorB_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+    MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
     uint32_t tick = osKernelGetTickCount();
     
     /* Infinite loop */
-    for(;;)
+    while(1)
     {
         // 1. 获取最新编码器反馈并执行位置+速度反馈闭环控制
         // 注意: 目标位置 target_position 会由 UARTComms 任务实时更新
