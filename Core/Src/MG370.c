@@ -9,6 +9,32 @@
 uint32_t MG370_A_EncoderCount = 0;
 uint32_t MG370_B_EncoderCount = 0;
 
+MG370_CascadePID_Motor_t MotorA_CascadeCtrl = {0};
+MG370_CascadePID_Motor_t MotorB_CascadeCtrl = {0};
+
+MotorA_CascadeCtrl.position_pid.kp = 1.0f;
+MotorA_CascadeCtrl.position_pid.ki = 0.0f;
+MotorA_CascadeCtrl.position_pid.kd = 0.0f;
+MotorA_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
+    
+MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
+MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
+MotorA_CascadeCtrl.speed_pid.kd = 0.1f;
+MotorA_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
+
+// 电机 B PID 设置 (同理)
+MotorB_CascadeCtrl.position_pid.kp = 1.0f;
+MotorB_CascadeCtrl.position_pid.ki = 0.0f;
+MotorB_CascadeCtrl.position_pid.kd = 0.0f;
+MotorB_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
+
+MotorB_CascadeCtrl.speed_pid.kp = 2.0f;
+MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
+MotorB_CascadeCtrl.speed_pid.kd = 0.1f;
+MotorB_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
+
 void MG370_Init(void)
 {
     HAL_TIM_PWM_Start(&MG370_PWMA_TIMEBASE, MG370_PWMA);
@@ -80,21 +106,6 @@ void MG370_B_ENCODER_Init(void)
 {
     HAL_TIM_Encoder_Start(&MG370_PWMB_TIMEBASE, TIM_CHANNEL_ALL);
 }
-
-void MG370_A_ENCODER_Update(void)
-{
-    MG370_A_EncoderCount = __HAL_TIM_GET_COUNTER(&MG370_A_Encoder);
-}
-
-void MG370_B_ENCODER_Update(void)
-{
-    MG370_B_EncoderCount = __HAL_TIM_GET_COUNTER(&MG370_B_Encoder);
-}
-
-/* ================== 下面为双环PID控制功能的具体实现 ================== */
-
-MG370_CascadePID_Motor_t MotorA_CascadeCtrl = {0};
-MG370_CascadePID_Motor_t MotorB_CascadeCtrl = {0};
 
 /**
  * @brief  单级PID的核心统一运算函数
@@ -201,15 +212,11 @@ void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     MG370_A_UpdateFeedback(motor);
     
     // 3. 计算外环：“位置环”。把无边界的“距离差”换算为我们需要多快的“速度”去弥补
-    float target_speed = MG370_PID_Calc(&motor->position_pid,
-                                        (float)motor->target_position, 
-                                        (float)motor->current_position);
+    float target_speed = MG370_PID_Calc(&motor->position_pid,(float)motor->target_position, (float)motor->current_position);
     motor->target_speed = (int16_t)target_speed;
     
     // 4. 计算内环：“速度环”。把期望“速度”和“当前读取速度”间的误差化为最后实际要拉高的电压“PWM”值
-    float pwm_out = MG370_PID_Calc(&motor->speed_pid,
-                                   (float)motor->target_speed, 
-                                   (float)motor->current_speed);
+    float pwm_out = MG370_PID_Calc(&motor->speed_pid,(float)motor->target_speed, (float)motor->current_speed);
     motor->output_pwm = (int16_t)pwm_out;
     
     // 5. 应用到底层电机接口
@@ -261,14 +268,10 @@ void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     
     MG370_B_UpdateFeedback(motor);
     
-    float target_speed = MG370_PID_Calc(&motor->position_pid,
-                                        (float)motor->target_position, 
-                                        (float)motor->current_position);
+    float target_speed = MG370_PID_Calc(&motor->position_pid,(float)motor->target_position, (float)motor->current_position);
     motor->target_speed = (int16_t)target_speed;
     
-    float pwm_out = MG370_PID_Calc(&motor->speed_pid,
-                                   (float)motor->target_speed, 
-                                   (float)motor->current_speed);
+    float pwm_out = MG370_PID_Calc(&motor->speed_pid,(float)motor->target_speed, (float)motor->current_speed);
     motor->output_pwm = (int16_t)pwm_out;
     
     MG370_B_Drive(motor->output_pwm);
@@ -277,11 +280,43 @@ void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
 void StartMotorControll(void *argument)
 {
     /* USER CODE BEGIN StartMotorControll */
+    // 初始化电机底层外设
+    MG370_Init();
+    MG370_A_ENCODER_Init();
+    MG370_B_ENCODER_Init();
+    
+    // 初始化 PID 结构体参数 (应根据实际物理参数调优，这里给出一组示例初始值)
+    // 比例、积分、微分系数需根据实际电机调试修改
+    
+    // 电机 A PID 设置
+    MotorA_CascadeCtrl.position_pid.kp = 1.0f;
+    MotorA_CascadeCtrl.position_pid.ki = 0.0f;
+    MotorA_CascadeCtrl.position_pid.kd = 0.0f;
+    MotorA_CascadeCtrl.position_pid.max_output = 500.0f; // 最大输出速度限制
+    
+    MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
+    MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
+    MotorA_CascadeCtrl.speed_pid.kd = 0.1f;
+    MotorA_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+    MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
+
+    // 电机 B PID 设置 (同理)
+    MotorB_CascadeCtrl.position_pid = MotorA_CascadeCtrl.position_pid;
+    MotorB_CascadeCtrl.speed_pid = MotorA_CascadeCtrl.speed_pid;
+
+    uint32_t tick = osKernelGetTickCount();
+    
     /* Infinite loop */
     for(;;)
     {
-        // 这里可以放一些测试代码，或者在实际应用中根据需要调用 MG370_A_CascadeControl 和 MG370_B_CascadeControl
-        osDelay(10); // 假设我们以 10ms 的周期调用控制函数
+        // 1. 获取最新编码器反馈并执行位置+速度反馈闭环控制
+        // 注意: 目标位置 target_position 会由 UARTComms 任务实时更新
+        MG370_A_CascadeControl(&MotorA_CascadeCtrl, MotorA_CascadeCtrl.target_position);
+        MG370_B_CascadeControl(&MotorB_CascadeCtrl, MotorB_CascadeCtrl.target_position);
+
+        // 2. 维持精确的周期执行 (10ms) 以保持 PID 积分累计的准确性
+        tick += osKernelGetTickFreq() * MG370_CONTROL_PERIOD_MS / 1000;
+        osDelayUntil(tick);
     }
     /* USER CODE END StartMotorControll */
 }

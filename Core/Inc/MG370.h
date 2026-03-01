@@ -13,6 +13,13 @@
 
 #define MG370_Transmission_Ratio 30
 #define MG370_Encoder_Resolution 13
+// 控制任务周期 (ms)
+#define MG370_CONTROL_PERIOD_MS 10
+// 编码器倍频 (4倍频下为一个周期4个脉冲)
+#define MG370_ENCODER_MULTIPLIER 4
+// 将角度转换为编码器计数的宏: (角度 / 360) * 减速比 * 线数 * 倍频
+#define MG370_DEG_TO_COUNT(deg) (int32_t)((deg / 360.0f) * MG370_Transmission_Ratio * MG370_Encoder_Resolution * MG370_ENCODER_MULTIPLIER)
+
 #define MG370_PWMA TIM_CHANNEL_1
 #define MG370_PWMB TIM_CHANNEL_2
 #define MG370_PWMA_TIMEBASE htim3
@@ -29,14 +36,6 @@
 #define MG370_BIN2_Pin GPIO_PIN_15
 #define MG370_BIN2_GPIO_Port GPIOB
 
-#define MG370_E1A_Pin GPIO_PIN_8
-#define MG370_E1A_GPIO_Port GPIOA
-#define MG370_E1B_Pin GPIO_PIN_9
-#define MG370_E1B_GPIO_Port GPIOA
-#define MG370_E2A_Pin GPIO_PIN_10
-#define MG370_E2A_GPIO_Port GPIOA
-#define MG370_E2B_Pin GPIO_PIN_11
-#define MG370_E2B_GPIO_Port GPIOA
 
 typedef enum
 {
