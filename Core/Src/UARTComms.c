@@ -61,7 +61,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		UARTComms_Recieve_Data(receiveBuffer,Size);
         
         // 发送任务通知（信号量），唤醒 CommsTask 处理数据
-        // 注意：在中断中使用 osThreadFlagsSet 是安全的
         if (CommsTaskHandle != NULL) {
             osThreadFlagsSet(CommsTaskHandle, COMMS_SIGNAL_RECEIVED);
         }
