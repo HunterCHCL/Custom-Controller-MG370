@@ -5,6 +5,7 @@
  *      Author: HunterCHCL
  */
 #include "MG370.h"
+#include "cmsis_os2.h"
 
 uint32_t MG370_A_EncoderCount = 0;
 uint32_t MG370_B_EncoderCount = 0;
@@ -77,12 +78,12 @@ void MG370_B_SetPWM(uint16_t duty)
 
 void MG370_A_ENCODER_Init(void)
 {
-    HAL_TIM_Encoder_Start(&MG370_PWMA_TIMEBASE, TIM_CHANNEL_ALL);
+    HAL_TIM_Encoder_Start(&MG370_A_Encoder, TIM_CHANNEL_ALL);
 }
 
 void MG370_B_ENCODER_Init(void)
 {
-    HAL_TIM_Encoder_Start(&MG370_PWMB_TIMEBASE, TIM_CHANNEL_ALL);
+    HAL_TIM_Encoder_Start(&MG370_B_Encoder, TIM_CHANNEL_ALL);
 }
 
 /**

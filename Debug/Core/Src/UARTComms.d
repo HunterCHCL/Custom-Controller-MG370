@@ -25,7 +25,9 @@ Core/Src/UARTComms.o: ../Core/Src/UARTComms.c ../Core/Inc/CRCs.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ ../Core/Inc/MG370.h ../Core/Inc/tim.h
 ../Core/Inc/CRCs.h:
 ../Core/Inc/UARTComms.h:
 ../Core/Inc/usart.h:
@@ -56,3 +58,6 @@ Core/Src/UARTComms.o: ../Core/Src/UARTComms.c ../Core/Inc/CRCs.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+../Core/Inc/MG370.h:
+../Core/Inc/tim.h:
