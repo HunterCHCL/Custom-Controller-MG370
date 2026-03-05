@@ -281,26 +281,26 @@ void StartMotorControll(void *argument)
     float pwm_limit = (float)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMA_TIMEBASE);
     
     // 初始化 PID 结构体参数
-    MotorA_CascadeCtrl.position_pid.kp = 1.0f;
+    MotorA_CascadeCtrl.position_pid.kp = 0.6f;
     MotorA_CascadeCtrl.position_pid.ki = 0.0f;
-    MotorA_CascadeCtrl.position_pid.kd = 0.0f;
-    MotorA_CascadeCtrl.position_pid.max_output = 200.0f; // 最大输出速度限制
+    MotorA_CascadeCtrl.position_pid.kd = 0.25f;
+    MotorA_CascadeCtrl.position_pid.max_output = 100.0f; // 最大输出速度限制
     
-    MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
+    MotorA_CascadeCtrl.speed_pid.kp = 1.8f;
     MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
-    MotorA_CascadeCtrl.speed_pid.kd = 0.1f;
+    MotorA_CascadeCtrl.speed_pid.kd = 0.18f;
     MotorA_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
 
     // 电机 B PID 设置
-    MotorB_CascadeCtrl.position_pid.kp = 1.0f;
+    MotorB_CascadeCtrl.position_pid.kp = 0.6f;
     MotorB_CascadeCtrl.position_pid.ki = 0.0f;
-    MotorB_CascadeCtrl.position_pid.kd = 0.0f;
-    MotorB_CascadeCtrl.position_pid.max_output = 200.0f; // 最大输出速度限制
+    MotorB_CascadeCtrl.position_pid.kd = 0.25f;
+    MotorB_CascadeCtrl.position_pid.max_output = 100.0f; // 最大输出速度限制
 
-    MotorB_CascadeCtrl.speed_pid.kp = 2.0f;
+    MotorB_CascadeCtrl.speed_pid.kp = 1.8f;
     MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
-    MotorB_CascadeCtrl.speed_pid.kd = 0.1f;
+    MotorB_CascadeCtrl.speed_pid.kd = 0.18f;
     MotorB_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
     uint32_t tick = osKernelGetTickCount();

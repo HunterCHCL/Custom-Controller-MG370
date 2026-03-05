@@ -11,12 +11,12 @@
 #include "main.h"
 #include "tim.h"
 
-#define MG370_Transmission_Ratio 30
+#define MG370_Transmission_Ratio 34
 #define MG370_Encoder_Resolution 13
 // 控制任务周期 (ms)
 #define MG370_CONTROL_PERIOD_MS 10
 // 编码器倍频 (4倍频下为一个周期4个脉冲)
-#define MG370_ENCODER_MULTIPLIER 4
+#define MG370_ENCODER_MULTIPLIER 2
 // 编码器方向系数：若闭环方向反了，将对应值改为 -1
 #define MG370_A_ENCODER_DIR 1
 #define MG370_B_ENCODER_DIR 1
