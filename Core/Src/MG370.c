@@ -68,11 +68,19 @@ void MG370_B_SetState(MG370_State state)
 
 void MG370_A_SetPWM(uint16_t duty)
 {
+    uint16_t max_duty = (uint16_t)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMA_TIMEBASE);
+    if (duty > max_duty) {
+        duty = max_duty;
+    }
     __HAL_TIM_SET_COMPARE(&MG370_PWMA_TIMEBASE, MG370_PWMA, duty);
 }
 
 void MG370_B_SetPWM(uint16_t duty)
 {
+    uint16_t max_duty = (uint16_t)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMB_TIMEBASE);
+    if (duty > max_duty) {
+        duty = max_duty;
+    }
     __HAL_TIM_SET_COMPARE(&MG370_PWMB_TIMEBASE, MG370_PWMB, duty);
 }
 
@@ -145,6 +153,7 @@ void MG370_A_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
     
     // 利用C语言无符号整型在运算时的溢出特性，再通过强转可以获取无跳变差值
     int16_t delta = (int16_t)(current_count - motor->last_encoder_count);
+    delta = (int16_t)(delta * MG370_A_ENCODER_DIR);
     
     // 周期内的距离增量即可当做速度
     motor->current_speed = delta;
@@ -211,6 +220,7 @@ void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
 {
     uint16_t current_count = __HAL_TIM_GET_COUNTER(&MG370_B_Encoder);
     int16_t delta = (int16_t)(current_count - motor->last_encoder_count);
+    delta = (int16_t)(delta * MG370_B_ENCODER_DIR);
     motor->current_speed = delta;
     motor->current_position += delta;
     motor->last_encoder_count = current_count;
@@ -263,6 +273,12 @@ void StartMotorControll(void *argument)
     MG370_Init();
     MG370_A_ENCODER_Init();
     MG370_B_ENCODER_Init();
+
+    // 同步编码器初值，避免首次计算 delta 时出现突变
+    MotorA_CascadeCtrl.last_encoder_count = (uint16_t)__HAL_TIM_GET_COUNTER(&MG370_A_Encoder);
+    MotorB_CascadeCtrl.last_encoder_count = (uint16_t)__HAL_TIM_GET_COUNTER(&MG370_B_Encoder);
+
+    float pwm_limit = (float)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMA_TIMEBASE);
     
     // 初始化 PID 结构体参数
     MotorA_CascadeCtrl.position_pid.kp = 1.0f;
@@ -273,7 +289,7 @@ void StartMotorControll(void *argument)
     MotorA_CascadeCtrl.speed_pid.kp = 2.0f;
     MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
     MotorA_CascadeCtrl.speed_pid.kd = 0.1f;
-    MotorA_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+    MotorA_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
 
     // 电机 B PID 设置
@@ -285,7 +301,7 @@ void StartMotorControll(void *argument)
     MotorB_CascadeCtrl.speed_pid.kp = 2.0f;
     MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
     MotorB_CascadeCtrl.speed_pid.kd = 0.1f;
-    MotorB_CascadeCtrl.speed_pid.max_output = 1000.0f; // PWM 满档 (假设为1000)
+    MotorB_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
     uint32_t tick = osKernelGetTickCount();
     

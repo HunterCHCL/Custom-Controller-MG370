@@ -61,11 +61,6 @@ const osThreadAttr_t MotorControll_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for MG370Data */
-osMessageQueueId_t MG370DataHandle;
-const osMessageQueueAttr_t MG370Data_attributes = {
-  .name = "MG370Data"
-};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -98,10 +93,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* creation of MG370Data */
-  MG370DataHandle = osMessageQueueNew (16, sizeof(uint32_t), &MG370Data_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */

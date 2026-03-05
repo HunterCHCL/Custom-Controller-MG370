@@ -1,0 +1,6 @@
+../Core/Src/verification.c:6:9:Verification_CalculateChecksum	24	static
+../Core/Src/verification.c:18:6:Verification_AddChecksum	24	static
+../Core/Src/verification.c:28:9:Verification_CheckChecksum	24	static
+../Core/Src/verification.c:37:9:Verification_CalculateXOR	24	static
+../Core/Src/verification.c:48:6:Verification_AddXOR	24	static
+../Core/Src/verification.c:58:9:Verification_CheckXOR	24	static

@@ -1,5 +1,5 @@
-../Core/Src/UARTComms.c:27:6:UARTComms_Transmmit_Data	16	static
-../Core/Src/UARTComms.c:38:6:UARTComms_Recieve_Data	16	static
-../Core/Src/UARTComms.c:57:6:HAL_UARTEx_RxEventCallback	16	static
-../Core/Src/UARTComms.c:72:6:UARTComms_Init	8	static
-../Core/Src/UARTComms.c:77:6:StartCommsTask	40	static
+../Core/Src/UARTComms.c:28:6:UARTComms_Transmmit_Data	16	static
+../Core/Src/UARTComms.c:39:6:UARTComms_Recieve_Data	32	static
+../Core/Src/UARTComms.c:68:6:HAL_UARTEx_RxEventCallback	16	static
+../Core/Src/UARTComms.c:83:6:UARTComms_Init	8	static
+../Core/Src/UARTComms.c:88:6:StartCommsTask	40	static

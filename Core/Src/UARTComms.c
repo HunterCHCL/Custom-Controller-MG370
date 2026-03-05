@@ -11,6 +11,7 @@
 #include "string.h"
 #include "cmsis_os2.h"
 #include "MG370.h"
+#include "verification.h"
 
 uint8_t globalBuffer[50];
 uint8_t receiveBuffer[50];
@@ -42,15 +43,25 @@ void UARTComms_Recieve_Data(uint8_t *received,uint8_t len)
         // 剥离包头 0xFA 0xAF (2字节)
         memmove(received,received+2,len-2);
         len-=2;
-        // 此时 received[0] 是 cmd，received[1-4] 是数据，末尾是 CRC
-        // CRC08_Verify 会根据内部算法校验 cmd+data 与最后的校验码
-        if(CRC08_Verify(received, len))
+        // // 此时 received[0] 是 cmd，received[1-4] 是数据，末尾是 CRC
+        // // CRC08_Verify 会根据内部算法校验 cmd+data 与最后的校验码
+        // if(CRC08_Verify(received, len))
+        // {
+        //     receivedCMD=received[0];
+        //     // 复制数据 (len-1) 字节 (排除 cmd 和 最后1字节 CRC)
+        //     memcpy(receivedData, received+1, len-2);
+        // }
+        // else{return;}
+        if(Verification_CheckXOR(received, len))
         {
             receivedCMD=received[0];
             // 复制数据 (len-1) 字节 (排除 cmd 和 最后1字节 CRC)
             memcpy(receivedData, received+1, len-2);
         }
-        else{return;}
+        else{
+            char errorMsg[] = "CRC Error\r\n";
+            HAL_UART_Transmit(&UARTComms_Port, (uint8_t*)errorMsg, sizeof(errorMsg) - 1, HAL_MAX_DELAY);
+            return;}
     }
 }
 
@@ -78,7 +89,7 @@ void StartCommsTask(void *argument)
 {
     UARTComms_Init();
 
-    float angleA, angleB;
+    float angleA=0, angleB=0;
     int32_t countA, countB;
     uint32_t flags;
 

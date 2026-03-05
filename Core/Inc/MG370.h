@@ -17,6 +17,9 @@
 #define MG370_CONTROL_PERIOD_MS 10
 // 编码器倍频 (4倍频下为一个周期4个脉冲)
 #define MG370_ENCODER_MULTIPLIER 4
+// 编码器方向系数：若闭环方向反了，将对应值改为 -1
+#define MG370_A_ENCODER_DIR 1
+#define MG370_B_ENCODER_DIR 1
 // 将角度转换为编码器计数的宏: (角度 / 360) * 减速比 * 线数 * 倍频
 #define MG370_DEG_TO_COUNT(deg) (int32_t)((deg / 360.0f) * MG370_Transmission_Ratio * MG370_Encoder_Resolution * MG370_ENCODER_MULTIPLIER)
 
@@ -24,8 +27,8 @@
 #define MG370_PWMB TIM_CHANNEL_2
 #define MG370_PWMA_TIMEBASE htim3
 #define MG370_PWMB_TIMEBASE htim3
-#define MG370_A_Encoder htim1
-#define MG370_B_Encoder htim2
+#define MG370_A_Encoder htim2
+#define MG370_B_Encoder htim1
 
 #define MG370_AIN1_Pin GPIO_PIN_12
 #define MG370_AIN1_GPIO_Port GPIOB
