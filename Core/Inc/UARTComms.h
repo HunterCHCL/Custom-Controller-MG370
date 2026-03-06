@@ -11,7 +11,7 @@
 #define PackageHead1 0xFA
 #define PackageHead2 0xAF
 
-#define UARTComms_Port huart2
+#define UARTComms_Port huart1
 
 extern uint8_t receivedData[48];
 extern uint8_t receivedCMD;

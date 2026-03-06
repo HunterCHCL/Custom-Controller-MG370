@@ -6,6 +6,9 @@
  */
 #include "MG370.h"
 #include "cmsis_os2.h"
+#include "UARTComms.h"
+#include "freertos.h"
+#include "usart.h"
 
 uint32_t MG370_A_EncoderCount = 0;
 uint32_t MG370_B_EncoderCount = 0;
@@ -308,6 +311,11 @@ void StartMotorControll(void *argument)
     /* Infinite loop */
     while(1)
     {
+        if (__HAL_UART_GET_FLAG(&UARTComms_Port, UART_FLAG_ORE)) 
+        {
+            // 如果进入了这里，说明发生了溢出错误
+            __HAL_UART_CLEAR_OREFLAG(&UARTComms_Port); // 清除溢出标志
+        }
         // 1. 获取最新编码器反馈并执行位置+速度反馈闭环控制
         // 注意: 目标位置 target_position 会由 UARTComms 任务实时更新
         MG370_A_CascadeControl(&MotorA_CascadeCtrl, MotorA_CascadeCtrl.target_position);

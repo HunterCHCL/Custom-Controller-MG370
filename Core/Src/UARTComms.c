@@ -95,6 +95,7 @@ void StartCommsTask(void *argument)
 
     while(1)
     {
+        
         flags = osThreadFlagsWait(COMMS_SIGNAL_RECEIVED, osFlagsWaitAny, osWaitForever);
 
         if (flags & COMMS_SIGNAL_RECEIVED)
