@@ -105,6 +105,9 @@ void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor);
 void MG370_A_Drive(int16_t output_pwm);
 void MG370_B_Drive(int16_t output_pwm);
 
+// 寻零就近位置规划
+int32_t MG370_GetShortestPathTarget(int32_t current_pos, float target_angle);
+
 // 核心的双环级联控制主函数（建议放在定时器中以恒定频率调用，例如 10ms）
 void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos);
 void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos);

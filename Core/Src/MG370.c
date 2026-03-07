@@ -98,6 +98,43 @@ void MG370_B_ENCODER_Init(void)
 }
 
 /**
+ * @brief  计算最短路径的相对目标绝对编码器位置（过零点就近规划）
+ * @param  current_pos    当前电机的绝对编码器累计位置
+ * @param  target_angle   目标期望角度 (如 -180 到 180度 等)
+ * @retval 经过过零点折叠后的最接近当前的目标绝对编码器位置
+ */
+int32_t MG370_GetShortestPathTarget(int32_t current_pos, float target_angle)
+{
+    int32_t counts_per_rev = MG370_DEG_TO_COUNT(360.0f);
+    int32_t target_count_base = MG370_DEG_TO_COUNT(target_angle);
+    
+    // 计算当前位置在当前一圈内对应的位置编号 [0, counts_per_rev - 1]
+    int32_t cur_rem = current_pos % counts_per_rev;
+    if (cur_rem < 0) {
+        cur_rem += counts_per_rev;
+    }
+    
+    // 计算目标位置在当前一圈内对应的位置编号 [0, counts_per_rev - 1]
+    int32_t tgt_rem = target_count_base % counts_per_rev;
+    if (tgt_rem < 0) {
+        tgt_rem += counts_per_rev;
+    }
+    
+    // 按当前圈内直线差异计算短路径偏差
+    int32_t diff = tgt_rem - cur_rem;
+    
+    // 如果偏差大于半圈(180°)，代表反着走距离更短
+    if (diff > counts_per_rev / 2) {
+        diff -= counts_per_rev;
+    } else if (diff < -(counts_per_rev / 2)) {
+        diff += counts_per_rev;
+    }
+    
+    // 将最短路径偏差直接加到当前无界位置上，作为PID最终追踪目标
+    return current_pos + diff;
+}
+
+/**
  * @brief  单级PID的核心统一运算函数
  * @param  pid      向此控制器结构体指针传入不同级环(串级/内环)的PID参数
  * @param  target   当前级的目标量

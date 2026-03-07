@@ -106,9 +106,9 @@ void StartCommsTask(void *argument)
                 memcpy(&angleA, &receivedData[0], 4);
                 memcpy(&angleB, &receivedData[4], 4);
 
-                // 转换为编码器计数值
-                countA = MG370_DEG_TO_COUNT(angleA);
-                countB = MG370_DEG_TO_COUNT(angleB);
+                // 转换为基于当前位置的最短路径编码器计数值
+                countA = MG370_GetShortestPathTarget(MotorA_CascadeCtrl.current_position, angleA);
+                countB = MG370_GetShortestPathTarget(MotorB_CascadeCtrl.current_position, angleB);
 
                 // 更新电机控制结构体的目标位置
                 MotorA_CascadeCtrl.target_position = countA;
