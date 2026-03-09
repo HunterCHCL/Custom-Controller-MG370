@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "tim.h"
+#include "pid.h"
 
 #define MG370_Transmission_Ratio 34
 #define MG370_Encoder_Resolution 13
@@ -39,6 +40,15 @@
 #define MG370_BIN2_Pin GPIO_PIN_15
 #define MG370_BIN2_GPIO_Port GPIOB
 
+#define position_max_output 100.0f // 位置环最大输出速度限制 (单位: 编码器计数/周期)
+#define position_kp 2.0f
+#define position_ki 0.0f
+#define position_kd 0.2f
+
+#define speed_kp 2.0f
+#define speed_ki 0.5f
+#define speed_kd 0.18f
+#define speed_maxiout 100.0f // 速度环最大积分输出
 
 typedef enum
 {
@@ -56,28 +66,12 @@ void MG370_B_ENCODER_Init(void);
 
 /* ================== PID 及双环控制相关结构体 ================== */
 
-/** 
- *  PID 控制器结构体
- */
-typedef struct {
-    float kp;             // 比例系数
-    float ki;             // 积分系数
-    float kd;             // 微分系数
-    
-    float error;          // 当前偏差
-    float last_error;     // 上一次偏差
-    float integral;       // 积分累计值
-    
-    float max_integral;   // 积分限幅
-    float max_output;     // 输出限幅
-} MG370_PID_Controller_t;
-
 /**
  *  单只电机的双环控制状态与参数结构体
  */
 typedef struct {
-    MG370_PID_Controller_t position_pid; // 位置外环PID（通过位置差计算目标速度）
-    MG370_PID_Controller_t speed_pid;    // 速度内环PID（通过速度差计算PWM）
+    pid_type_def position_pid; // 位置外环PID（通过位置差计算目标速度）
+    pid_type_def speed_pid;    // 速度内环PID（通过速度差计算PWM）
     
     int32_t target_position;      // 目标位置
     int32_t current_position;     // 当前累计无界位置
@@ -94,16 +88,13 @@ extern MG370_CascadePID_Motor_t MotorB_CascadeCtrl;
 
 /* ================== PID 双环控制函数声明 ================== */
 
-// PID 基础数学计算
-float MG370_PID_Calc(MG370_PID_Controller_t *pid, float target, float measure);
-
 // 电机状态的更新与提取（计算速度、累计位置）
 void MG370_A_UpdateFeedback(MG370_CascadePID_Motor_t *motor);
 void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor);
 
 // 处理带符号的PWM指令来控制正反转
-void MG370_A_Drive(int16_t output_pwm);
-void MG370_B_Drive(int16_t output_pwm);
+void MG370_A_Drive(float output_pwm);
+void MG370_B_Drive(float output_pwm);
 
 // 核心的双环级联控制主函数（建议放在定时器中以恒定频率调用，例如 10ms）
 void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos);

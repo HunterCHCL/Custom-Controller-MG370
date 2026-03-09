@@ -94,52 +94,6 @@ void MG370_B_ENCODER_Init(void)
     HAL_TIM_Encoder_Start(&MG370_B_Encoder, TIM_CHANNEL_ALL);
 }
 
-/**
- * @brief  单级PID的核心统一运算函数
- * @param  pid      向此控制器结构体指针传入不同级环(串级/内环)的PID参数
- * @param  target   当前级的目标量
- * @param  measure  当前级的实际测量值
- * @retval 修改后计算得到的当前级PID输出值
- */
-float MG370_PID_Calc(MG370_PID_Controller_t *pid, float target, float measure)
-{
-    float output;
-    
-    // 1. 计算当前误差
-    pid->error = target - measure;
-    
-    // 2. 积分部分累加（需注意限幅或积分分离防止抗饱和风暴）
-    pid->integral += pid->error;
-    
-    // 对积分项进行限幅
-    if (pid->max_integral > 0.0f) {
-        if (pid->integral > pid->max_integral) {
-            pid->integral = pid->max_integral;
-        } else if (pid->integral < -pid->max_integral) {
-            pid->integral = -pid->max_integral;
-        }
-    }
-    
-    // 3. 计算PID总输出（由于周期固定，周期已经分别合并到 Ki 和 Kd 参数中）
-    output = pid->kp * pid->error +
-             pid->ki * pid->integral +
-             pid->kd * (pid->error - pid->last_error);
-             
-    // 4. 存储上次误差供下次计算微分使用
-    pid->last_error = pid->error;
-    
-    // 5. 对总输出项进行限幅
-    if (pid->max_output > 0.0f) {
-        if (output > pid->max_output) {
-            output = pid->max_output;
-        } else if (output < -pid->max_output) {
-            output = -pid->max_output;
-        }
-    }
-    
-    return output;
-}
-
 /* --------------------------------- 电机 A 的实现模块 --------------------------------- */
 
 /**
@@ -167,7 +121,7 @@ void MG370_A_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
  * @brief  将有符号的PWM数值转化成了A相H桥底层对应的正反转和PWM命令
  * @param  output_pwm  带有极性与占空比幅值的 PWM
  */
-void MG370_A_Drive(int16_t output_pwm)
+void MG370_A_Drive(float output_pwm)
 {
     if (output_pwm > 0)
     {
@@ -200,12 +154,12 @@ void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     MG370_A_UpdateFeedback(motor);
     
     // 3. 计算外环：“位置环”。把无边界的“距离差”换算为我们需要多快的“速度”去弥补
-    float target_speed = MG370_PID_Calc(&motor->position_pid,(float)motor->target_position, (float)motor->current_position);
+    float target_speed = PID_calc(&motor->position_pid, (float)motor->current_position, (float)motor->target_position);
     motor->target_speed = (int16_t)target_speed;
     
     // 4. 计算内环：“速度环”。把期望“速度”和“当前读取速度”间的误差化为最后实际要拉高的电压“PWM”值
-    float pwm_out = MG370_PID_Calc(&motor->speed_pid,(float)motor->target_speed, (float)motor->current_speed);
-    motor->output_pwm = (int16_t)pwm_out;
+    float pwm_out = PID_calc(&motor->speed_pid, (float)motor->current_speed, (float)motor->target_speed);
+    motor->output_pwm = pwm_out;
     
     // 5. 应用到底层电机接口
     MG370_A_Drive(motor->output_pwm);
@@ -229,7 +183,7 @@ void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
 /**
  * @brief  底层带状态处理的B电机驱动
  */
-void MG370_B_Drive(int16_t output_pwm)
+void MG370_B_Drive(float output_pwm)
 {
     if (output_pwm > 0)
     {
@@ -257,11 +211,11 @@ void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     
     MG370_B_UpdateFeedback(motor);
     
-    float target_speed = MG370_PID_Calc(&motor->position_pid,(float)motor->target_position, (float)motor->current_position);
+    float target_speed = PID_calc(&motor->position_pid, (float)motor->current_position, (float)motor->target_position);
     motor->target_speed = (int16_t)target_speed;
     
-    float pwm_out = MG370_PID_Calc(&motor->speed_pid,(float)motor->target_speed, (float)motor->current_speed);
-    motor->output_pwm = (int16_t)pwm_out;
+    float pwm_out = PID_calc(&motor->speed_pid, (float)motor->current_speed, (float)motor->target_speed);
+    motor->output_pwm = pwm_out;
     
     MG370_B_Drive(motor->output_pwm);
 }
@@ -281,35 +235,40 @@ void StartMotorControll(void *argument)
     float pwm_limit = (float)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMA_TIMEBASE);
     
     // 初始化 PID 结构体参数
-    MotorA_CascadeCtrl.position_pid.kp = 0.6f;
-    MotorA_CascadeCtrl.position_pid.ki = 0.0f;
-    MotorA_CascadeCtrl.position_pid.kd = 0.25f;
-    MotorA_CascadeCtrl.position_pid.max_output = 100.0f; // 最大输出速度限制
-    
-    MotorA_CascadeCtrl.speed_pid.kp = 1.8f;
-    MotorA_CascadeCtrl.speed_pid.ki = 0.5f;
-    MotorA_CascadeCtrl.speed_pid.kd = 0.18f;
-    MotorA_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
-    MotorA_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
+    MotorA_CascadeCtrl.position_pid.mode = PID_POSITION;
+    MotorA_CascadeCtrl.speed_pid.mode = PID_POSITION;
+    MotorA_CascadeCtrl.position_pid.Kp = position_kp;
+    MotorA_CascadeCtrl.position_pid.Ki = position_ki;
+    MotorA_CascadeCtrl.position_pid.Kd = position_kd;
+    MotorA_CascadeCtrl.position_pid.max_out = position_max_output; // 最大输出速度限制
+    MotorA_CascadeCtrl.position_pid.max_iout = 0.0f; // 位置环通常不需要积分项，避免稳态误差过大
+
+    MotorA_CascadeCtrl.speed_pid.Kp = speed_kp;
+    MotorA_CascadeCtrl.speed_pid.Ki = speed_ki;
+    MotorA_CascadeCtrl.speed_pid.Kd = speed_kd;
+    MotorA_CascadeCtrl.speed_pid.max_out = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
+    MotorA_CascadeCtrl.speed_pid.max_iout = speed_maxiout; // 积分限幅防止饱和过冲
 
     // 电机 B PID 设置
-    MotorB_CascadeCtrl.position_pid.kp = 0.6f;
-    MotorB_CascadeCtrl.position_pid.ki = 0.0f;
-    MotorB_CascadeCtrl.position_pid.kd = 0.25f;
-    MotorB_CascadeCtrl.position_pid.max_output = 100.0f; // 最大输出速度限制
-
-    MotorB_CascadeCtrl.speed_pid.kp = 1.8f;
-    MotorB_CascadeCtrl.speed_pid.ki = 0.5f;
-    MotorB_CascadeCtrl.speed_pid.kd = 0.18f;
-    MotorB_CascadeCtrl.speed_pid.max_output = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
-    MotorB_CascadeCtrl.speed_pid.max_integral = 200.0f; // 积分限幅防止饱和过冲
+    MotorB_CascadeCtrl.position_pid.mode = PID_POSITION;
+    MotorB_CascadeCtrl.speed_pid.mode = PID_POSITION;
+    MotorB_CascadeCtrl.position_pid.Kp = position_kp;
+    MotorB_CascadeCtrl.position_pid.Ki = position_ki;
+    MotorB_CascadeCtrl.position_pid.Kd = position_kd;
+    MotorB_CascadeCtrl.position_pid.max_out = position_max_output; // 最大输出速度限制
+    MotorB_CascadeCtrl.position_pid.max_iout = 0.0f; // 位置环通常不需要积分项，避免稳态误差过大
+    
+    MotorB_CascadeCtrl.speed_pid.Kp = speed_kp;
+    MotorB_CascadeCtrl.speed_pid.Ki = speed_ki;
+    MotorB_CascadeCtrl.speed_pid.Kd = speed_kd;
+    MotorB_CascadeCtrl.speed_pid.max_out = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
+    MotorB_CascadeCtrl.speed_pid.max_iout = speed_maxiout; // 积分限幅防止饱和过冲
     uint32_t tick = osKernelGetTickCount();
     
     /* Infinite loop */
     while(1)
     {
         // 1. 获取最新编码器反馈并执行位置+速度反馈闭环控制
-        // 注意: 目标位置 target_position 会由 UARTComms 任务实时更新
         MG370_A_CascadeControl(&MotorA_CascadeCtrl, MotorA_CascadeCtrl.target_position);
         MG370_B_CascadeControl(&MotorB_CascadeCtrl, MotorB_CascadeCtrl.target_position);
 

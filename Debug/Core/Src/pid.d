@@ -1,4 +1,4 @@
-Core/Src/MG370.o: ../Core/Src/MG370.c ../Core/Inc/MG370.h \
+Core/Src/pid.o: ../Core/Src/pid.c ../Core/Inc/pid.h ../Core/Inc/struct.h \
  ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
@@ -24,10 +24,9 @@ Core/Src/MG370.o: ../Core/Src/MG370.c ../Core/Inc/MG370.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/tim.h ../Core/Inc/pid.h ../Core/Inc/struct.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
-../Core/Inc/MG370.h:
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+../Core/Inc/pid.h:
+../Core/Inc/struct.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -55,7 +54,3 @@ Core/Src/MG370.o: ../Core/Src/MG370.c ../Core/Inc/MG370.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
-../Core/Inc/tim.h:
-../Core/Inc/pid.h:
-../Core/Inc/struct.h:
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
