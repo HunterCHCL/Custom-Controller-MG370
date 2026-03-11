@@ -79,7 +79,7 @@ typedef struct {
     int16_t current_speed;        // 当前速度 (即每一个更新周期的编码器增量)
     uint16_t last_encoder_count;  // 上一次记录的16位编码器原始计数值
     
-    int16_t target_speed;         // 目标速度 (外环PID输出结果)
+    float target_speed;           // 目标速度 (外环PID输出结果)
     int16_t output_pwm;           // 输出PWM占空比 (内环PID输出结果)
 } MG370_CascadePID_Motor_t;
 

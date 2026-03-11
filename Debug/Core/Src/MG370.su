@@ -11,4 +11,4 @@
 ../Core/Src/MG370.c:173:6:MG370_B_UpdateFeedback	24	static
 ../Core/Src/MG370.c:186:6:MG370_B_Drive	16	static
 ../Core/Src/MG370.c:208:6:MG370_B_CascadeControl	32	static
-../Core/Src/MG370.c:223:6:StartMotorControll	24	static
+../Core/Src/MG370.c:223:6:StartMotorControll	80	static

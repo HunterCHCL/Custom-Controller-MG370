@@ -155,7 +155,7 @@ void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     
     // 3. 计算外环：“位置环”。把无边界的“距离差”换算为我们需要多快的“速度”去弥补
     float target_speed = PID_calc(&motor->position_pid, (float)motor->current_position, (float)motor->target_position);
-    motor->target_speed = (int16_t)target_speed;
+    motor->target_speed = target_speed;
     
     // 4. 计算内环：“速度环”。把期望“速度”和“当前读取速度”间的误差化为最后实际要拉高的电压“PWM”值
     float pwm_out = PID_calc(&motor->speed_pid, (float)motor->current_speed, (float)motor->target_speed);
@@ -212,7 +212,7 @@ void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     MG370_B_UpdateFeedback(motor);
     
     float target_speed = PID_calc(&motor->position_pid, (float)motor->current_position, (float)motor->target_position);
-    motor->target_speed = (int16_t)target_speed;
+    motor->target_speed = target_speed;
     
     float pwm_out = PID_calc(&motor->speed_pid, (float)motor->current_speed, (float)motor->target_speed);
     motor->output_pwm = pwm_out;
@@ -234,7 +234,10 @@ void StartMotorControll(void *argument)
 
     float pwm_limit = (float)__HAL_TIM_GET_AUTORELOAD(&MG370_PWMA_TIMEBASE);
     
-    // 初始化 PID 结构体参数
+    // 电机A PID设置
+    PID_init(&MotorA_CascadeCtrl.position_pid, PID_POSITION, (float[]){position_kp, position_ki, position_kd}, position_max_output, 0.0f);
+    PID_init(&MotorA_CascadeCtrl.speed_pid, PID_POSITION, (float[]){speed_kp, speed_ki, speed_kd}, pwm_limit, speed_maxiout);
+/** 
     MotorA_CascadeCtrl.position_pid.mode = PID_POSITION;
     MotorA_CascadeCtrl.speed_pid.mode = PID_POSITION;
     MotorA_CascadeCtrl.position_pid.Kp = position_kp;
@@ -248,8 +251,11 @@ void StartMotorControll(void *argument)
     MotorA_CascadeCtrl.speed_pid.Kd = speed_kd;
     MotorA_CascadeCtrl.speed_pid.max_out = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorA_CascadeCtrl.speed_pid.max_iout = speed_maxiout; // 积分限幅防止饱和过冲
-
+*/
     // 电机 B PID 设置
+    PID_init(&MotorB_CascadeCtrl.position_pid, PID_POSITION, (float[]){position_kp, position_ki, position_kd}, position_max_output, 0.0f);
+    PID_init(&MotorB_CascadeCtrl.speed_pid, PID_POSITION, (float[]){speed_kp, speed_ki, speed_kd}, pwm_limit, speed_maxiout);
+/**
     MotorB_CascadeCtrl.position_pid.mode = PID_POSITION;
     MotorB_CascadeCtrl.speed_pid.mode = PID_POSITION;
     MotorB_CascadeCtrl.position_pid.Kp = position_kp;
@@ -263,6 +269,7 @@ void StartMotorControll(void *argument)
     MotorB_CascadeCtrl.speed_pid.Kd = speed_kd;
     MotorB_CascadeCtrl.speed_pid.max_out = pwm_limit; // PWM 上限与 TIM3 ARR 对齐
     MotorB_CascadeCtrl.speed_pid.max_iout = speed_maxiout; // 积分限幅防止饱和过冲
+*/    
     uint32_t tick = osKernelGetTickCount();
     
     /* Infinite loop */
