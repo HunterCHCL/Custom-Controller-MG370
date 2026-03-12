@@ -94,32 +94,27 @@ void MG370_B_ENCODER_Init(void)
     HAL_TIM_Encoder_Start(&MG370_B_Encoder, TIM_CHANNEL_ALL);
 }
 
-/* --------------------------------- 电机 A 的实现模块 --------------------------------- */
 
 /**
- * @brief  获取并更新电机A由于编码器增量而代表的速度和位置
- * @param  motor 指向需更新状态的电机A全局结构体
+ * @brief  获取并更新电机A的速度和角度
+ * @param  motor 电机结构体
  */
 void MG370_A_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
 {
-    // 获取当前16位定时器的原始计数值
+    // 获取当前16位定时器的计数值
     uint16_t current_count = __HAL_TIM_GET_COUNTER(&MG370_A_Encoder);
     
-    // 利用C语言无符号整型在运算时的溢出特性，再通过强转可以获取无跳变差值
     int16_t delta = (int16_t)(current_count - motor->last_encoder_count);
     delta = (int16_t)(delta * MG370_A_ENCODER_DIR);
     
-    // 周期内的距离增量即可当做速度
     motor->current_speed = delta;
-    // 累加真正的无上界全局位置
     motor->current_position += delta;
-    
     motor->last_encoder_count = current_count;
 }
 
 /**
- * @brief  将有符号的PWM数值转化成了A相H桥底层对应的正反转和PWM命令
- * @param  output_pwm  带有极性与占空比幅值的 PWM
+ * @brief  驱动电机A
+ * @param  output_pwm  PWM输出
  */
 void MG370_A_Drive(float output_pwm)
 {
@@ -141,9 +136,9 @@ void MG370_A_Drive(float output_pwm)
 }
 
 /**
- * @brief  电机 A 的串级双环PID控制入口，需要固定频率规律性调用
- * @param  motor       电机A绑定的状态管理主结构体
- * @param  target_pos  设定要求这只电机达到的期望位置
+ * @brief  电机 A 的串级双环PID控制
+ * @param  motor       电机A结构体
+ * @param  target_pos  目标位置
  */
 void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
 {
@@ -165,11 +160,7 @@ void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     MG370_A_Drive(motor->output_pwm);
 }
 
-/* --------------------------------- 电机 B 的实现模块 --------------------------------- */
 
-/**
- * @brief  获取并更新电机B的速度和位置
- */
 void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
 {
     uint16_t current_count = __HAL_TIM_GET_COUNTER(&MG370_B_Encoder);
@@ -180,9 +171,6 @@ void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor)
     motor->last_encoder_count = current_count;
 }
 
-/**
- * @brief  底层带状态处理的B电机驱动
- */
 void MG370_B_Drive(float output_pwm)
 {
     if (output_pwm > 0)
@@ -202,9 +190,6 @@ void MG370_B_Drive(float output_pwm)
     }
 }
 
-/**
- * @brief  电机 B 的串级双环PID控制入口
- */
 void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
 {
     motor->target_position = target_pos;
@@ -228,7 +213,7 @@ void StartMotorControll(void *argument)
     MG370_A_ENCODER_Init();
     MG370_B_ENCODER_Init();
 
-    // 同步编码器初值，避免首次计算 delta 时出现突变
+    // 同步编码器初值
     MotorA_CascadeCtrl.last_encoder_count = (uint16_t)__HAL_TIM_GET_COUNTER(&MG370_A_Encoder);
     MotorB_CascadeCtrl.last_encoder_count = (uint16_t)__HAL_TIM_GET_COUNTER(&MG370_B_Encoder);
 
@@ -279,7 +264,7 @@ void StartMotorControll(void *argument)
         MG370_A_CascadeControl(&MotorA_CascadeCtrl, MotorA_CascadeCtrl.target_position);
         MG370_B_CascadeControl(&MotorB_CascadeCtrl, MotorB_CascadeCtrl.target_position);
 
-        // 2. 维持精确的周期执行 (10ms) 以保持 PID 积分累计的准确性
+        // 2. 维持精确的周期执行 (10ms)
         tick += osKernelGetTickFreq() * MG370_CONTROL_PERIOD_MS / 1000;
         osDelayUntil(tick);
     }

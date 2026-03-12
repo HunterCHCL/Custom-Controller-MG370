@@ -16,12 +16,12 @@
 #define MG370_Encoder_Resolution 13
 // 控制任务周期 (ms)
 #define MG370_CONTROL_PERIOD_MS 10
-// 编码器倍频 (4倍频下为一个周期4个脉冲)
+// 编码器倍频
 #define MG370_ENCODER_MULTIPLIER 2
-// 编码器方向系数：若闭环方向反了，将对应值改为 -1
+// 编码器方向系数
 #define MG370_A_ENCODER_DIR 1
 #define MG370_B_ENCODER_DIR 1
-// 将角度转换为编码器计数的宏: (角度 / 360) * 减速比 * 线数 * 倍频
+// 将角度转换为编码器计数
 #define MG370_DEG_TO_COUNT(deg) (int32_t)((deg / 360.0f) * MG370_Transmission_Ratio * MG370_Encoder_Resolution * MG370_ENCODER_MULTIPLIER)
 
 #define MG370_PWMA TIM_CHANNEL_1
@@ -45,7 +45,7 @@
 #define position_ki 0.0f
 #define position_kd 0.2f
 
-#define speed_kp 2.0f
+#define speed_kp 1.8f
 #define speed_ki 0.5f
 #define speed_kd 0.18f
 #define speed_maxiout 100.0f // 速度环最大积分输出
@@ -64,11 +64,6 @@ void MG370_B_SetState(MG370_State state);
 void MG370_A_ENCODER_Init(void);
 void MG370_B_ENCODER_Init(void);
 
-/* ================== PID 及双环控制相关结构体 ================== */
-
-/**
- *  单只电机的双环控制状态与参数结构体
- */
 typedef struct {
     pid_type_def position_pid; // 位置外环PID（通过位置差计算目标速度）
     pid_type_def speed_pid;    // 速度内环PID（通过速度差计算PWM）
@@ -86,17 +81,12 @@ typedef struct {
 extern MG370_CascadePID_Motor_t MotorA_CascadeCtrl;
 extern MG370_CascadePID_Motor_t MotorB_CascadeCtrl;
 
-/* ================== PID 双环控制函数声明 ================== */
-
-// 电机状态的更新与提取（计算速度、累计位置）
 void MG370_A_UpdateFeedback(MG370_CascadePID_Motor_t *motor);
 void MG370_B_UpdateFeedback(MG370_CascadePID_Motor_t *motor);
 
-// 处理带符号的PWM指令来控制正反转
 void MG370_A_Drive(float output_pwm);
 void MG370_B_Drive(float output_pwm);
 
-// 核心的双环级联控制主函数（建议放在定时器中以恒定频率调用，例如 10ms）
 void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos);
 void MG370_B_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos);
 
