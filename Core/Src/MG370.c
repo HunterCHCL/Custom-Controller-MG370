@@ -148,15 +148,15 @@ void MG370_A_CascadeControl(MG370_CascadePID_Motor_t *motor, int32_t target_pos)
     // 2. 自发更新和计算电机的当前速度与无限界位置反馈
     MG370_A_UpdateFeedback(motor);
     
-    // 3. 计算外环：“位置环”。把无边界的“距离差”换算为我们需要多快的“速度”去弥补
+    // 3. 计算位置环
     float target_speed = PID_calc(&motor->position_pid, (float)motor->current_position, (float)motor->target_position);
     motor->target_speed = target_speed;
     
-    // 4. 计算内环：“速度环”。把期望“速度”和“当前读取速度”间的误差化为最后实际要拉高的电压“PWM”值
+    // 4. 计算速度环
     float pwm_out = PID_calc(&motor->speed_pid, (float)motor->current_speed, (float)motor->target_speed);
     motor->output_pwm = pwm_out;
     
-    // 5. 应用到底层电机接口
+    // 5. 驱动电机
     MG370_A_Drive(motor->output_pwm);
 }
 
