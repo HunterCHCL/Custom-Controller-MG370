@@ -17,7 +17,7 @@
 // 控制任务周期 (ms)
 #define MG370_CONTROL_PERIOD_MS 10
 // 编码器倍频
-#define MG370_ENCODER_MULTIPLIER 2
+#define MG370_ENCODER_MULTIPLIER 4
 // 编码器方向系数
 #define MG370_A_ENCODER_DIR 1
 #define MG370_B_ENCODER_DIR 1
